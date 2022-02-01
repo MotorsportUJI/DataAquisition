@@ -28,9 +28,6 @@ void initializeLEDS(DAC_HandleTypeDef *hdac){
   */
 
 void setLEDS(DAC_HandleTypeDef *hdac, uint32_t n_led){
-	if (n_led > 10){
-		assert_param(n_led);
-	}
 
 	uint32_t output = n_led * (4000/10) + 90;
 	HAL_DAC_SetValue(hdac, LED_DAC, DAC_ALIGN_12B_R, output);

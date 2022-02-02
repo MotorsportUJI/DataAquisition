@@ -1338,7 +1338,6 @@ void BlinkTask(void * pvParams) {
  8000ff2:	6078      	str	r0, [r7, #4]
 
   for (;;) {
-
 	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
  8000ff4:	f44f 4100 	mov.w	r1, #32768	; 0x8000
  8000ff8:	480b      	ldr	r0, [pc, #44]	; (8001028 <BlinkTask+0x3c>)
@@ -1386,8 +1385,11 @@ int SecondMain(void){
  8001040:	4803      	ldr	r0, [pc, #12]	; (8001050 <SecondMain+0x24>)
  8001042:	f003 f97d 	bl	8004340 <xTaskCreate>
 
+	// start scheduler, this won't return unless there is an error
 	vTaskStartScheduler();
  8001046:	f003 fafd 	bl	8004644 <vTaskStartScheduler>
+
+
 	// endless loop so we never return to that hell of main
 	for(;;);
  800104a:	e7fe      	b.n	800104a <SecondMain+0x1e>

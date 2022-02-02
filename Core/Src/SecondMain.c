@@ -11,6 +11,11 @@
 #include "semphr.h"
 #include "event_groups.h"
 
+// variables from main.c, for calling HAL functions and so on.
+extern DAC_HandleTypeDef hdac;
+
+
+// Blink task
 void BlinkTask(void * pvParams) {
 
   for (;;) {
@@ -26,7 +31,9 @@ void BlinkTask(void * pvParams) {
 
 int SecondMain(void){
 
+	initializeLEDS(&hdac);
 
+	// start blink task
 	xTaskCreate(BlinkTask, "Blinking", 150, NULL, 1, NULL);
 
 	// start scheduler, this won't return unless there is an error

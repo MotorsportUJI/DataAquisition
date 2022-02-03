@@ -1,0 +1,15 @@
+newlib_lock_glue.c:44:13:Error_Handler	0	static
+stm32_lock.h:360:20:stm32_lock_release	8	static,ignoring_inline_asm
+lock.h:43:13:__retarget_lock_init_recursive	8	static,ignoring_inline_asm
+lock.h:41:13:__retarget_lock_init	0	static
+lock.h:45:13:__retarget_lock_close	0	static
+lock.h:47:13:__retarget_lock_close_recursive	0	static
+lock.h:49:13:__retarget_lock_acquire	8	static,ignoring_inline_asm
+lock.h:51:13:__retarget_lock_acquire_recursive	0	static
+lock.h:53:12:__retarget_lock_try_acquire	8	static
+lock.h:55:12:__retarget_lock_try_acquire_recursive	8	static
+lock.h:58:13:__retarget_lock_release	8	static,ignoring_inline_asm
+lock.h:60:13:__retarget_lock_release_recursive	0	static
+newlib_lock_glue.c:351:5:__cxa_guard_acquire	16	static,ignoring_inline_asm
+newlib_lock_glue.c:387:6:__cxa_guard_abort	8	static,ignoring_inline_asm
+newlib_lock_glue.c:408:6:__cxa_guard_release	8	static,ignoring_inline_asm

@@ -1,0 +1,3 @@
+SecondMain.c:32:6:BlinkTask	8	static
+SecondMain.c:23:6:ConsoleTask	0	static
+SecondMain.c:45:5:SecondMain	16	static

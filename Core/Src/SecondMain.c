@@ -20,15 +20,19 @@ extern void initialise_monitor_handles();
 #endif
 
 // data packet type
-typedef struct dataPacket {
+typedef struct dataPacket { // 128 bytes
 	int timestap = 0;
 	int oil_temp = 0;
 	int water_temp = 0;
 } dataPacket;
 
+dataPacket* dataTABLE;
 
 // formats input data
 void producePacketsTask(void * pvParams){
+
+
+
 
 }
 
@@ -63,6 +67,9 @@ int SecondMain(void){
 
 	// initialize peripherals
 	initializeLEDS(&hdac);
+
+	// allocate 1/2 of the memory as a buffer 512 elements of 128 bytes
+	dataTABLE = malloc(65536);
 
 	// initialize debugging, if debug release is selected
 #ifdef DEBUG

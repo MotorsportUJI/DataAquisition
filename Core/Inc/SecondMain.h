@@ -5,6 +5,9 @@
 #include "UMLib.h"
 #include "main.h"
 
+#include <stdbool.h>
+
+#define TABLE_SIZE 512
 
 
 

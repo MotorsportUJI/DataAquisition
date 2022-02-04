@@ -1,3 +1,4 @@
-SecondMain.c:23:6:ConsoleTask	16	static
-SecondMain.c:32:6:BlinkTask	24	static
-SecondMain.c:49:5:SecondMain	16	static
+SecondMain.c:34:6:producePacketsTask	16	static
+SecondMain.c:41:6:SendPacketsTask	16	static
+SecondMain.c:47:6:BlinkTask	24	static
+SecondMain.c:67:5:SecondMain	48	static

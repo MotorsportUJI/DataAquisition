@@ -19,18 +19,45 @@ extern DAC_HandleTypeDef hdac;
 extern void initialise_monitor_handles();
 #endif
 
+
 // data packet type
 typedef struct dataPacket { // 128 bytes
-	int timestap = 0;
-	int oil_temp = 0;
-	int water_temp = 0;
+	int timestap;
+	int oil_temp;
+	int water_temp;              // overwritable by default
+	int OverWrittable; // 0 if not readed 0xFFFF0000 if thread 1 consumed, 0x0000FFFF if thread2 consumed, 0xFFFFFFFF if it can be overwrited
+
 } dataPacket;
 
-dataPacket* dataTABLE;
+dataPacket* dataTABLE; // holds TABLE_SIZE (elements)
 
 // formats input data
-void producePacketsTask(void * pvParams){
+void producePacketsTask(void * pvParams){ // maybe this should be changed so is executed every x ms instead of continous running
+	int index = 0;
+	for(;;){
 
+		// check overwrittable
+		if (dataTABLE[i].OverWrittable != 0xFFFFFFFF){
+			// halt, overrun ocurred (we could reduce speed or something)
+#ifdef DEBUG
+			printf("TABLE OVERRUN, reduce producer speed");
+#endif
+			halt();
+
+		}
+
+		//get timestap
+
+		// get data
+
+
+		// store data
+
+		// send data through queue
+
+		// update index
+		index = (index + 1) % TABLE_SIZE;
+	}
 
 
 
@@ -38,6 +65,12 @@ void producePacketsTask(void * pvParams){
 
 // sends input data
 void SendPacketsTask(void * pvParams){
+	// read queue
+
+	// send data
+
+	// modify overwrittalbe
+
 
 }
 
@@ -68,8 +101,14 @@ int SecondMain(void){
 	// initialize peripherals
 	initializeLEDS(&hdac);
 
-	// allocate 1/2 of the memory as a buffer 512 elements of 128 bytes
-	dataTABLE = malloc(65536);
+	// allocate 1/2 of the memory as a buffer 512 elements
+	dataTABLE = malloc(sizeof(dataPacket) * TABLE_SIZE);
+
+	// populate table with overwritable elements
+	dataPacket empty = {0, 0, 0, 0};
+	for (int i = 0;i < TABLE_SIZE;i++){
+		dataTABLE[i] = empty;
+	}
 
 	// initialize debugging, if debug release is selected
 #ifdef DEBUG

@@ -22,7 +22,7 @@ extern void initialise_monitor_handles();
 
 // data packet type
 typedef struct dataPacket { // 128 bytes
-	int timestap;
+	TickType_t timestap;  // uint32_t
 	int oil_temp;
 	int water_temp;              // overwritable by default
 	int OverWrittable; // 0 if not readed 0xFFFF0000 if thread 1 consumed, 0x0000FFFF if thread2 consumed, 0xFFFFFFFF if it can be overwrited
@@ -33,6 +33,8 @@ dataPacket* dataTABLE; // holds TABLE_SIZE (elements)
 
 // formats input data
 void producePacketsTask(void * pvParams){ // maybe this should be changed so is executed every x ms instead of continous running
+	TickType_t timestap = xTaskGetTickCount();
+
 	int index = 0;
 	for(;;){
 
@@ -45,12 +47,14 @@ void producePacketsTask(void * pvParams){ // maybe this should be changed so is 
 			halt();
 
 		}
-		xTaskGetTickCount();
 
 		//get timestap
 
+		timestap = xTaskGetTickCount(); // this will never be able to collect data faster than 1ms,  we should be sampling at 10ms speed
 
 		// get data
+
+
 
 
 		// store data

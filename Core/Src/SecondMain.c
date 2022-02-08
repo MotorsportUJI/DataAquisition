@@ -45,8 +45,10 @@ void producePacketsTask(void * pvParams){ // maybe this should be changed so is 
 			halt();
 
 		}
+		xTaskGetTickCount();
 
 		//get timestap
+
 
 		// get data
 
@@ -105,7 +107,7 @@ int SecondMain(void){
 	dataTABLE = malloc(sizeof(dataPacket) * TABLE_SIZE);
 
 	// populate table with overwritable elements
-	dataPacket empty = {0, 0, 0, 0};
+	dataPacket empty = {0, 0, 0, 0xFFFFFFFF};
 	for (int i = 0;i < TABLE_SIZE;i++){
 		dataTABLE[i] = empty;
 	}

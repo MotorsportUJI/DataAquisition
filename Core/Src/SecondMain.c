@@ -23,37 +23,44 @@ extern void initialise_monitor_handles();
 // data packet type
 typedef struct dataPacket { // 128 bytes
 	TickType_t timestap;  // uint32_t
+	int stm32_cpu_temp;
 	int oil_temp;
-	int water_temp;              // overwritable by default
-	int OverWrittable; // 0 if not readed 0xFFFF0000 if thread 1 consumed, 0x0000FFFF if thread2 consumed, 0xFFFFFFFF if it can be overwrited
+	int water_temp;
 
 } dataPacket;
 
-dataPacket* dataTABLE; // holds TABLE_SIZE (elements)
+dataPacket* dataTable; // access this with the indexes from the queues
+
+QueueHandle_t read2uart;
+QueueHandle_t uart2read;
 
 // gets data
-void CollectDataTask(void * pvParams){ // run this each 10ms, instead of running continously
-	TickType_t timestap = xTaskGetTickCount();
-
-	int index = 0;
+void CollectDataTask(void * pvParams){ // run this each 10ms
 	for(;;){
-
-		// check overwrittable
-		if (dataTABLE[i].OverWrittable != 0xFFFFFFFF){
-			// halt, overrun ocurred (we could reduce speed or something)
-#ifdef DEBUG
-			printf("TABLE OVERRUN, reduce producer speed");
-#endif
-			halt();
-
-		}
-
-		//get timestap
-
+		// get timestap
 		timestap = xTaskGetTickCount(); // this will never be able to collect data faster than 1ms,  we should be sampling at 10ms speed
 
+		// get packet to use
+		int index;
+		xQueueReceive(uart2read, &index, portMAX_DELAY);
+
+		// print empty espace if too low: (producing faster than consuming)
+#ifdef DEBUG
+		int e = uxQueueSpacesAvailable(uart2read);
+		if (e > 400){
+			printf("uart2read queue getting empty, %d empty spaces, consumers not fast enough \n",e);
+		}
+#endif
+
+
+		dataPacket* packet = &dataTable[index]; // pointer to packet
+
+				// set timestap
+		dataPacket->timestap=timestap;
+
+
 		// get data
-			// gpio reading
+			// gpio reading is atomic
 				// gear reading
 				// gpio reading
 
@@ -62,13 +69,14 @@ void CollectDataTask(void * pvParams){ // run this each 10ms, instead of running
 			// make dma ADC requests
 
 		// get accelerometer data, spi
-		    // check accelerometer readiness
-		    // get values from accelerometer (pack)
-		    // make dma accelerometer requests
+			// check accelerometer readiness
+			// get values from accelerometer (pack)
+			// make dma accelerometer requests
+
 		// get CAN data, SPI
-	    	// check CAN data readiness
-	    	// get values from CAN (pack)
-	    	// make dma CAN requests
+			// check CAN data readiness
+			// get values from CAN (pack)
+			// make dma CAN requests
 
 
 
@@ -78,60 +86,71 @@ void CollectDataTask(void * pvParams){ // run this each 10ms, instead of running
 
 		// send data through queue
 
-		// update index
-		index = (index + 1) % TABLE_SIZE;
+
+		xQueueSend(read2uart, &index, portMAX_DELAY);
+		vTaskDelayUntil(timestap, 10);
+	}
+}
+
+	// sends input data
+	void SendDataTask(void * pvParams){
+		// read queue
+
+		// send data
+
+		// modify overwrittalbe
+
+
 	}
 
 
+	// Blink task
+	void BlinkTask(void * pvParams) {
+		int32_t i = 0;
 
+	  for (;;) {
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+
+	#ifdef DEBUG
+		printf("Toggling %d\n",i);
+	#endif
+
+		i++;
+
+		vTaskDelay(500);
+	  }
+	}
+
+	// main task for initializing stuff
+	void InitTask(void * pvParams){
+		// initialize peripherals
+			initializeLEDS(&hdac);
+
+
+			// create index queues:
+			read2uart = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
+			uart2read = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
+
+			// initialize dataTable
+			dataTable = (dataPacket*) malloc(TABLE_SIZE*sizeof(dataPacket));
+
+			// populate dataTable and corresponding queue
+			dataPacket empty = {0,0,0};
+			for (int i = 0; i < TABLE_SIZE; i++){
+				dataTable = empty[i];
+				xQueueSend(uart2read, &i, portMAX_DELAY);
+
+			}
+
+			// start Producer task:
+			xTaskCreate(CollectDataTask, "CollectData", 128, NULL, 10, NULL);
+	}
 }
-
-// sends input data
-void SendDataTask(void * pvParams){
-	// read queue
-
-	// send data
-
-	// modify overwrittalbe
-
-
-}
-
-
-// Blink task
-void BlinkTask(void * pvParams) {
-	int32_t i = 0;
-
-  for (;;) {
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-
-#ifdef DEBUG
-	printf("Toggling %d\n",i);
-#endif
-
-	i++;
-
-    vTaskDelay(500);
-  }
-}
-
-
 int SecondMain(void){
 
-	// initialize peripherals
-	initializeLEDS(&hdac);
-
-	// allocate 1/2 of the memory as a buffer 512 elements
-	dataTABLE = malloc(sizeof(dataPacket) * TABLE_SIZE);
-
-	// populate table with overwritable elements
-	dataPacket empty = {0, 0, 0, 0xFFFFFFFF};
-	for (int i = 0;i < TABLE_SIZE;i++){
-		dataTABLE[i] = empty;
-	}
 
 	// initialize debugging, if debug release is selected
 #ifdef DEBUG
@@ -139,10 +158,13 @@ int SecondMain(void){
 #endif
 
 	// start blink task
-	xTaskCreate(BlinkTask, "Blinking", 128, NULL, 1, NULL);
+	xTaskCreate(InitTask, "Initializing Task", 128, NULL, 1, NULL);
 
 	// start scheduler, this won't return unless there is an error
 	vTaskStartScheduler();
 	// endless loop so we never return to that hell of main
-	for(;;);
+#ifdef DEBUG
+			printf("ERROR STARTING SCHEDULER");
+#endif
+			halt();
 }

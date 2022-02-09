@@ -31,8 +31,8 @@ typedef struct dataPacket { // 128 bytes
 
 dataPacket* dataTABLE; // holds TABLE_SIZE (elements)
 
-// formats input data
-void producePacketsTask(void * pvParams){ // maybe this should be changed so is executed every x ms instead of continous running
+// gets data
+void CollectDataTask(void * pvParams){ // run this each 10ms, instead of running continously
 	TickType_t timestap = xTaskGetTickCount();
 
 	int index = 0;
@@ -53,6 +53,23 @@ void producePacketsTask(void * pvParams){ // maybe this should be changed so is 
 		timestap = xTaskGetTickCount(); // this will never be able to collect data faster than 1ms,  we should be sampling at 10ms speed
 
 		// get data
+			// gpio reading
+				// gear reading
+				// gpio reading
+
+			// check ADC dma readiness
+			// get values from dma ADC (pack)
+			// make dma ADC requests
+
+		// get accelerometer data, spi
+		    // check accelerometer readiness
+		    // get values from accelerometer (pack)
+		    // make dma accelerometer requests
+		// get CAN data, SPI
+	    	// check CAN data readiness
+	    	// get values from CAN (pack)
+	    	// make dma CAN requests
+
 
 
 
@@ -70,7 +87,7 @@ void producePacketsTask(void * pvParams){ // maybe this should be changed so is 
 }
 
 // sends input data
-void SendPacketsTask(void * pvParams){
+void SendDataTask(void * pvParams){
 	// read queue
 
 	// send data

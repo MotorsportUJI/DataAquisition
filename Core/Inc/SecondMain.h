@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #define TABLE_SIZE 512
+#define DATA_AQUISITION_PERIOD 10
 
 
 

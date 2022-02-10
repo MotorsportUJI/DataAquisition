@@ -59,13 +59,16 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 		dataPacket->timestap=timestap;
 
 
+
 		// get data
 			// gpio reading is atomic
 				// gear reading
 				// gpio reading
 
+
 			// check ADC dma readiness
 			// get values from dma ADC (pack)
+			// take semaphore
 			// make dma ADC requests
 
 		// get accelerometer data, spi
@@ -86,9 +89,10 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 
 		// send data through queue
 
-
 		xQueueSend(read2uart, &index, portMAX_DELAY);
-		vTaskDelayUntil(timestap, 10);
+
+		// execute this task each 10 seconds
+		vTaskDelayUntil(timestap, DATA_AQUISITION_PERIOD);
 	}
 }
 
@@ -149,6 +153,7 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 			xTaskCreate(CollectDataTask, "CollectData", 128, NULL, 10, NULL);
 	}
 }
+
 int SecondMain(void){
 
 

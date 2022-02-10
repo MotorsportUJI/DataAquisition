@@ -33,12 +33,16 @@ void setLEDS(DAC_HandleTypeDef *hdac, uint32_t n_led){
 	HAL_DAC_SetValue(hdac, LED_DAC, DAC_ALIGN_12B_R, output);
 }
 
+/**
+  * @brief  halts system and puts all 4 leds on
+  */
 void halt(){
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 
+	vTaskEndScheduler();
 	for (;;);
 
 }

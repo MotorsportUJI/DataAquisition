@@ -66,7 +66,9 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 				// gpio reading
 
 
-			// check ADC dma readiness
+		// use 24Mhz clock for ADC, each measurement takes 15 cycles at 24 Mhz, so 105 cycles
+
+			// check ADC readiness
 			// get values from dma ADC (pack)
 			// take semaphore
 			// make dma ADC requests

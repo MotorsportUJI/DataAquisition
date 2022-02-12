@@ -1,4 +1,7 @@
-SecondMain.c:34:6:producePacketsTask	16	static
-SecondMain.c:41:6:SendPacketsTask	16	static
-SecondMain.c:47:6:BlinkTask	24	static
-SecondMain.c:67:5:SecondMain	48	static
+SecondMain.c:64:6:CollectDataTask	48	static
+SecondMain.c:120:6:SendDataTask	16	static
+SecondMain.c:132:6:SaveDataTask	16	static
+SecondMain.c:140:6:BlinkTask	16	static
+SecondMain.c:154:6:InitTask	80	static
+SecondMain.c:188:5:SecondMain	16	static
+SecondMain.c:206:6:HAL_ADC_ConvCpltCallback	24	static

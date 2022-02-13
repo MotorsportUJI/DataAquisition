@@ -23,7 +23,7 @@ extern CRC_HandleTypeDef hcrc;
 
 // variables for debugging (so you can watch easily with live expression)
 #ifdef DEBUG
-int emptySpace = 0;
+int __attribute__((__unused__)) emptySpace = 0;
 #endif
 
 // data packet type, put items with same size together to prevent padding
@@ -78,7 +78,7 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 
 
 #ifdef DEBUG
-		int emptySpace = uxQueueSpacesAvailable(uart2read);
+		emptySpace = uxQueueSpacesAvailable(uart2read);
 #endif
 
 

@@ -43,6 +43,9 @@ dataPacket* dataTable; // access this with the indexes from the queues
 QueueHandle_t read2uart;
 QueueHandle_t uart2read;
 
+QueueHandle_t read2fat;
+QueueHandle_t fat2read;
+
 // ADC values, get last 4 samples for oversampling
 uint16_t ADCvalues[4][11] = {{0,0,0,0,0,0,0,0,0,0,0},
 		 	 	 	 	 	 {0,0,0,0,0,0,0,0,0,0,0},
@@ -63,8 +66,6 @@ uint16_t ADCvalues[4][11] = {{0,0,0,0,0,0,0,0,0,0,0},
 #define Vrefinti 9
 #define Vbati 10
 
-
-dataPacket* packet;
 // packs data
 void CollectDataTask(void * pvParams){ // run this each 10ms
 	for(;;){
@@ -74,15 +75,16 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 		// get packet to use
 		uint16_t index;
 	//	xQueueReceive(uart2read, &index, portMAX_DELAY);
-		index = 10;	//TODO uncomment what needs to be uncommented
+		xQueueReceive(fat2read, &index, portMAX_DELAY);
+
 
 
 #ifdef DEBUG
-		emptySpace = uxQueueSpacesAvailable(uart2read);
+		emptySpace = uxQueueSpacesAvailable(fat2read);
 #endif
 
 
-		packet = &dataTable[index]; // pointer to packet
+		dataPacket* packet = &dataTable[index]; // pointer to packet
 
 		// empty packet
 		memset(packet,0,sizeof(dataPacket));
@@ -117,6 +119,8 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 		// send data through queue
 
 		//xQueueSend(read2uart, &index, portMAX_DELAY);
+		xQueueSend(read2fat, &index, portMAX_DELAY);
+
 
 		// execute this task each 10 miliseconds (period)
 		vTaskDelayUntil(&timestap, DATA_AQUISITION_PERIOD);
@@ -137,27 +141,18 @@ void SendDataTask(void * pvParams){
 
 // store data on FAT filesystem
 void SaveDataTask(void *pvParams){
+	int index = 0;
+	for(;;){
+		xQueueReceive(read2fat, &index, portMAX_DELAY);
+		dataPacket* packet = &dataTable[index]; // pointer to packet
 
-	vTaskDelete(NULL);
+
+
+		xQueueSend(fat2read, &index, portMAX_DELAY);
+	}
 }
 
-
-
-// Blink task
-void BlinkTask(void * pvParams) {
-
-  for (;;) {
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-
-
-	vTaskDelay(1000);
-  }
-}
-
-	// main task for initializing stuff
+//  task for initializing stuff ()
 void InitTask(void * pvParams){
 	// initialize peripherals
 	//leds
@@ -170,12 +165,16 @@ void InitTask(void * pvParams){
 	read2uart = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
 	uart2read = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
 
+	read2fat = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
+	fat2read = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
+
 	// initialize dataTable, for some extranche reason pvPortMalloc does not work, so we use malloc instead(it is not thread safe, but at this point in the code this is the only task running and no interrupts use malloc, so we should be safe)
 	dataTable = (dataPacket*) malloc(TABLE_SIZE*sizeof(dataPacket));
 
 	// put indexes on queue
 	for (int i = 0; i < TABLE_SIZE; i++){
 		xQueueSend(uart2read, &i, portMAX_DELAY);
+		xQueueSend(fat2read, &i, portMAX_DELAY);
 	}
 
 	// start Producer task:
@@ -197,7 +196,7 @@ int SecondMain(void){
 
 	// start scheduler, this won't return unless there is an error
 	vTaskStartScheduler();
-	// endless loop so we never return to that hell of main
+	// endless loop so we never return to that hell of a main
 			halt();
 	return 1;
 }

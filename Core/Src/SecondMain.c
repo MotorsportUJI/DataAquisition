@@ -1,6 +1,7 @@
 #include "SecondMain.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 //include HAL
 #include "stm32f4xx_hal.h"
@@ -16,6 +17,8 @@
 // variables from main.c, for calling HAL functions and so on.
 extern DAC_HandleTypeDef hdac;
 extern ADC_HandleTypeDef hadc1;
+extern CRC_HandleTypeDef hcrc;
+
 
 
 // variables for debugging (so you can watch easily with live expression)
@@ -23,12 +26,13 @@ extern ADC_HandleTypeDef hadc1;
 int emptySpace = 0;
 #endif
 
-// data packet type
-typedef struct dataPacket { // 128 bytes
+// data packet type, put items with same size together to prevent padding
+typedef struct dataPacket { // 40 bytes
 	TickType_t timestap;  // uint32_t
-	int oil_temp;
-	int water_temp;
+	uint32_t oil_temp;
+	uint32_t water_temp;
 	uint16_t ADCvalues[11];
+	uint16_t padding; // padding for crc calculation (alligned to 32 bits), modify when adding new elements to struct (we could delete this and the compiler will take care for us, but I think that this makes it more visual)
 	uint32_t crc;
 
 } dataPacket;
@@ -60,6 +64,7 @@ uint16_t ADCvalues[4][11] = {{0,0,0,0,0,0,0,0,0,0,0},
 #define Vbati 10
 
 
+dataPacket* packet;
 // packs data
 void CollectDataTask(void * pvParams){ // run this each 10ms
 	for(;;){
@@ -68,7 +73,8 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 
 		// get packet to use
 		uint16_t index;
-		xQueueReceive(uart2read, &index, portMAX_DELAY);
+	//	xQueueReceive(uart2read, &index, portMAX_DELAY);
+		index = 10;	//TODO uncomment what needs to be uncommented
 
 
 #ifdef DEBUG
@@ -76,8 +82,10 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 #endif
 
 
-		dataPacket* packet = &dataTable[index]; // pointer to packet
+		packet = &dataTable[index]; // pointer to packet
 
+		// empty packet
+		memset(packet,0,sizeof(dataPacket));
 		// set timestap
 		packet->timestap = timestap;
 
@@ -103,12 +111,12 @@ void CollectDataTask(void * pvParams){ // run this each 10ms
 		// get CAN data, SPI
 
 
-		// calculate CRC
-
+		// calculate CRC, probablemente no pague la pena hacerlo con dma (buffer demasiado pequeño).
+		packet->crc = HAL_CRC_Calculate(&hcrc, (uint32_t*)packet, (sizeof(dataPacket)-4)/4);
 
 		// send data through queue
 
-		xQueueSend(read2uart, &index, portMAX_DELAY);
+		//xQueueSend(read2uart, &index, portMAX_DELAY);
 
 		// execute this task each 10 miliseconds (period)
 		vTaskDelayUntil(&timestap, DATA_AQUISITION_PERIOD);
@@ -162,15 +170,12 @@ void InitTask(void * pvParams){
 	read2uart = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
 	uart2read = xQueueCreate(TABLE_SIZE, sizeof(uint16_t));
 
-	// initialize dataTable
+	// initialize dataTable, for some extranche reason pvPortMalloc does not work, so we use malloc instead(it is not thread safe, but at this point in the code this is the only task running and no interrupts use malloc, so we should be safe)
 	dataTable = (dataPacket*) malloc(TABLE_SIZE*sizeof(dataPacket));
 
-	// populate dataTable with empty elements (same as formatting to all 0??) and corresponding queue
-	dataPacket empty = {};
+	// put indexes on queue
 	for (int i = 0; i < TABLE_SIZE; i++){
-		dataTable[i] = empty;
 		xQueueSend(uart2read, &i, portMAX_DELAY);
-
 	}
 
 	// start Producer task:
@@ -199,7 +204,7 @@ int SecondMain(void){
 
 // Interruption Callbacks
 
-// ADC callback
+// ADC callback, this can and should be done with continuous DMA
 int ADC_callback_index_large = 0;
 int ADC_callback_index = 0;
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
@@ -209,5 +214,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	if (ADC_callback_index == 0){
 		ADC_callback_index_large = (ADC_callback_index_large+1) % 4;
 	}
+}
+
+// ADC error callback, Overrun ocurred, reset ADC, this should only be triggered when debugging
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc){
+	ADC_callback_index = (ADC_callback_index+1) % 11;
+	if (ADC_callback_index == 0){
+		ADC_callback_index_large = (ADC_callback_index_large+1) % 4;
+	}
+	HAL_ADC_Start_IT(hadc);
 }
 

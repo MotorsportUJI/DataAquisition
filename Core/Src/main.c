@@ -45,6 +45,8 @@ ADC_HandleTypeDef hadc1;
 
 CAN_HandleTypeDef hcan1;
 
+CRC_HandleTypeDef hcrc;
+
 DAC_HandleTypeDef hdac;
 
 SPI_HandleTypeDef hspi1;
@@ -68,6 +70,7 @@ static void MX_CAN1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USART6_UART_Init(void);
+static void MX_CRC_Init(void);
 void StartDefaultTask(void const * argument);
 
 static void MX_NVIC_Init(void);
@@ -115,6 +118,7 @@ int main(void)
   MX_SPI2_Init();
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
+  MX_CRC_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -380,6 +384,32 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
 
 }
 

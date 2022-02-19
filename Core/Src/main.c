@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "SecondMain.h"
+#include "UJI/SecondMain.h"
 
 /* USER CODE END Includes */
 
@@ -43,6 +43,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 CAN_HandleTypeDef hcan1;
 
@@ -60,7 +61,6 @@ UART_HandleTypeDef huart6;
 
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,16 +68,16 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_DAC_Init(void);
-static void MX_ADC1_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_CRC_Init(void);
 static void MX_SDIO_SD_Init(void);
+static void MX_DMA_Init(void);
+static void MX_ADC1_Init(void);
 void StartDefaultTask(void const * argument);
 
-static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -117,7 +117,6 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_DAC_Init();
-  MX_ADC1_Init();
   MX_CAN1_Init();
   MX_SPI2_Init();
   MX_USART3_UART_Init();
@@ -125,10 +124,10 @@ int main(void)
   MX_CRC_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
-
-  /* Initialize interrupts */
-  MX_NVIC_Init();
+  MX_DMA_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
+  // From here we abdup the workflow
   SecondMain();
   /* USER CODE END 2 */
 
@@ -216,17 +215,6 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief NVIC Configuration.
-  * @retval None
-  */
-static void MX_NVIC_Init(void)
-{
-  /* ADC_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(ADC_IRQn);
-}
-
-/**
   * @brief ADC1 Initialization Function
   * @param None
   * @retval None
@@ -255,7 +243,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 11;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -265,7 +253,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -628,6 +616,22 @@ static void MX_USART6_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -791,6 +795,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
+	asm("BKPT #0");
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
@@ -812,6 +817,7 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	asm("BKPT #0");
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

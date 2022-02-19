@@ -1,8 +1,5 @@
-SecondMain.c:69:6:CollectDataTask	48	static
-SecondMain.c:127:6:SendDataTask	16	static
-SecondMain.c:139:6:SaveDataTask	16	static
-SecondMain.c:147:6:BlinkTask	16	static
-SecondMain.c:161:6:InitTask	32	static
-SecondMain.c:192:5:SecondMain	16	static
-SecondMain.c:210:6:HAL_ADC_ConvCpltCallback	24	static
-SecondMain.c:220:6:HAL_ADC_ErrorCallback	16	static
+SecondMain.c:72:6:CollectDataTask	40	static
+SecondMain.c:133:6:SendDataTask	16	static
+SecondMain.c:145:6:SaveDataTask	24	static
+SecondMain.c:158:6:InitTask	32	static
+SecondMain.c:195:5:SecondMain	16	static

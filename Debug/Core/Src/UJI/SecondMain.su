@@ -1,0 +1,6 @@
+SecondMain.c:14:6:SendDataTask	16	static
+SecondMain.c:26:6:SaveDataTask	16	static
+SecondMain.c:33:6:updateUI	16	static
+SecondMain.c:38:6:InitTask	16	static
+SecondMain.c:51:5:SecondMain	16	static
+SecondMain.c:66:6:HAL_ADC_ErrorCallback	16	static

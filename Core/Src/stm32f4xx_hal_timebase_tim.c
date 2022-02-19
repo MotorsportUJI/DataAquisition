@@ -45,6 +45,8 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   uint32_t              uwPrescalerValue = 0;
   uint32_t              pFLatency;
   /*Configure the TIM6 IRQ priority */
+  // fix for https://community.st.com/s/global-search/uwTickPrio
+  uwTickPrio = TickPriority;
   HAL_NVIC_SetPriority(TIM6_DAC_IRQn, TickPriority ,0);
 
   /* Enable the TIM6 global Interrupt */

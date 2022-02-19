@@ -17,7 +17,7 @@ stm32f4xx_hal_adc.c:1593:13:HAL_ADC_ConvHalfCpltCallback	16	static
 stm32f4xx_hal_adc.c:1608:13:HAL_ADC_LevelOutOfWindowCallback	16	static
 stm32f4xx_hal_adc.c:1629:13:HAL_ADC_ErrorCallback	16	static
 stm32f4xx_hal_adc.c:1667:19:HAL_ADC_ConfigChannel	24	static
-stm32f4xx_hal_adc.c:1790:19:HAL_ADC_AnalogWDGConfig	16	static
+stm32f4xx_hal_adc.c:1790:19:HAL_ADC_AnalogWDGConfig	24	static
 stm32f4xx_hal_adc.c:1872:10:HAL_ADC_GetState	16	static
 stm32f4xx_hal_adc.c:1884:10:HAL_ADC_GetError	16	static
 stm32f4xx_hal_adc.c:1904:13:ADC_Init	24	static

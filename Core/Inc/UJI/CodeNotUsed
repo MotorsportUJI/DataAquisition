@@ -1,0 +1,27 @@
+// ADC callback, this can and should be done with continuous DMA
+int ADC_callback_index_large = 0;
+int ADC_callback_index = 0;
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	// write value to according matrix place
+	ADCvalues[ADC_callback_index_large][ADC_callback_index] = HAL_ADC_GetValue(&hadc1);
+	ADC_callback_index = (ADC_callback_index+1) % 11;
+	if (ADC_callback_index == 0){
+		ADC_callback_index_large = (ADC_callback_index_large+1) % 4;
+	}
+}
+
+// ADC error callback, Overrun ocurred, reset ADC, this should only be triggered when debugging
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc){
+	ADC_callback_index = (ADC_callback_index+1) % 11;
+	if (ADC_callback_index == 0){
+		ADC_callback_index_large = (ADC_callback_index_large+1) % 4;
+	}
+	HAL_ADC_Start_IT(hadc);
+}
+
+Timestap
+
+TickType_t timestap = xTaskGetTickCount(); // this will never be able to collect data faster than 1ms,  we should be sampling at 10ms speed
+
+// calculate CRC, probablemente no pague la pena hacerlo con dma (buffer demasiado pequeño).
+packet->crc = HAL_CRC_Calculate(&hcrc, (uint32_t*)packet, (sizeof(dataPacket)-4)/4);

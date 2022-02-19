@@ -64,6 +64,9 @@ int SecondMain(void){
 // Interruption Callbacks
 // ADC error handling (restart ADC)
 void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc){
-
+#ifdef DEBUG
+	asm("BKPT #0");
+#endif
+	HAL_ADC_Start_DMA(&hadc1, ADCvalues, sizeof(ADCvalues));
 }
 

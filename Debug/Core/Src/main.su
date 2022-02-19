@@ -14,4 +14,4 @@ main.c:639:13:MX_GPIO_Init	56	static
 main.c:759:6:StartDefaultTask	16	static
 main.c:778:6:HAL_TIM_PeriodElapsedCallback	16	static
 main.c:795:6:Error_Handler	4	static,ignoring_inline_asm
-main.c:815:6:assert_failed	16	static,ignoring_inline_asm
+main.c:817:6:assert_failed	16	static,ignoring_inline_asm
